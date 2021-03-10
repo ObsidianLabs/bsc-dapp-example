@@ -8,7 +8,8 @@ import './App.css';
 const message = 'Hello Binance Smart Chain'
 
 export default function App () {
-  const dapp = React.useMemo(() => new BscDapp({ extension: 'MetaMask' }), [])
+  const dapp = React.useMemo(() => new BscDapp(), [])
+  // const dapp = React.useMemo(() => new BscDapp({ extension: 'MetaMask' }), [])
   // const dapp = React.useMemo(() => new BscDapp({ extension: 'BinanceChainWallet' }), [])
   window.dapp = dapp
 
