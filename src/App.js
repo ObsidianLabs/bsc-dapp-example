@@ -16,6 +16,7 @@ export default function App () {
   const [enabled, setEnabled] = React.useState(dapp.isBrowserExtensionEnabled)
   const [account, setAccount] = React.useState(dapp.currentAddress)
   const [network, setNetwork] = React.useState()
+  const [transferInfo, setTransferInfo] = React.useState({ to: '', amount: '' })
   const [sig, setSig] = React.useState('')
 
   React.useEffect(() => dapp.onEnabled(account => {
@@ -53,6 +54,16 @@ export default function App () {
       sig = await dapp.signMessage(message)
     }
     setSig(sig)
+  }
+
+  const transfer = async (to = '0x987ffbf3f7cdabb38782b9886d257ce74f338da5', amount = '0.01') => {
+    const transactionParameters = {
+      to,
+      from: account.address,
+      value: dapp.parseEther(amount).toHexString()
+    };
+    const txHash = await dapp.sendTransaction(transactionParameters)
+    console.log(txHash)
   }
 
   let browserExtensionStatus
@@ -99,10 +110,30 @@ export default function App () {
 
   let signMessageButton = null
   if (enabled && network) {
-    signMessageButton = <div>
+    signMessageButton = <div style={{ margin: '20px 0'}}>
       <div>message: <small><code>{message}</code></small></div>
       <div>signature: <small><code>{sig}</code></small></div>
       {!sig && <button onClick={() => signMessage()}>Sign Message</button>}
+    </div>
+  }
+
+  let transferForm = null
+  if (enabled && network) {
+    transferForm = <div style={{ margin: '20px 0'}}>
+      <div>
+        Transfer
+      </div>
+      <input
+        value={transferInfo.to}
+        onChange={(e) => setTransferInfo({ ...transferInfo, to: e.target.value })}
+        placeholder="Transfer to"
+      />
+      <input
+        value={transferInfo.amount}
+        onChange={(e) => setTransferInfo({ ...transferInfo, amount: e.target.value })}
+        placeholder="Transfer amount"
+      />
+      <button onClick={() => transfer(transferInfo.to, transferInfo.amount)}>Transfer</button>
     </div>
   }
 
@@ -115,6 +146,7 @@ export default function App () {
         {accountInfo}
         {networkInfo}
         {signMessageButton}
+        {transferForm}
       </header>
     </div>
   );
