@@ -15,23 +15,33 @@ export default function App () {
 
   const [enabled, setEnabled] = React.useState(dapp.isBrowserExtensionEnabled)
   const [account, setAccount] = React.useState(dapp.currentAddress)
-  const [isBscNetwork, setIsBscNetwork] = React.useState()
+  const [network, setNetwork] = React.useState()
   const [sig, setSig] = React.useState('')
 
   React.useEffect(() => dapp.onEnabled(account => {
     setEnabled(true)
     setAccount(account)
-    setIsBscNetwork(dapp.network.isBscMainnet)
+    updateNetwork(dapp.network)
   }), [])
 
   React.useEffect(() => dapp.onNetworkChanged(result => {
-    setIsBscNetwork(result.isBscMainnet)
+    updateNetwork(result)
   }), [])
 
 
   React.useEffect(() => dapp.onAccountChanged(account => {
     setAccount(account)
   }), [])
+
+  const updateNetwork = (network = {}) => {
+    if (network.isBscMainnet) {
+      setNetwork('Mainnet')
+    } else if (network.isBscTestnet) {
+      setNetwork('Testnet')
+    } else {
+      setNetwork()
+    }
+  }
 
   const signMessage = async () => {
     let sig
@@ -80,15 +90,15 @@ export default function App () {
 
   let networkInfo = null
   if (enabled) {
-    if (isBscNetwork) {
-      networkInfo = <p>Network: BSC Mainnet</p>
+    if (network) {
+      networkInfo = <p>Network: BSC {network}</p>
     } else {
       networkInfo = <p>Not connected to BSC Mainnet (<a target='_black' href='https://docs.binance.org/smart-chain/wallet/metamask.html'>Use BSC with Metamask</a>)</p>
     }
   }
 
   let signMessageButton = null
-  if (enabled && isBscNetwork) {
+  if (enabled && network) {
     signMessageButton = <div>
       <div>message: <small><code>{message}</code></small></div>
       <div>signature: <small><code>{sig}</code></small></div>
