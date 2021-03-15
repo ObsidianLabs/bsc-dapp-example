@@ -16,7 +16,19 @@ export default function App () {
   const [enabled, setEnabled] = React.useState(dapp.isBrowserExtensionEnabled)
   const [account, setAccount] = React.useState(dapp.currentAddress)
   const [network, setNetwork] = React.useState()
-  const [transferInfo, setTransferInfo] = React.useState({ to: '', amount: '' })
+  const [transferInfo, setTransferInfo] = React.useState({
+    to: '0x987ffbf3f7cdabb38782b9886d257ce74f338da5',
+    amount: '0.01',
+    txHash: ''
+  })
+  const [contractInfo, setContractInfo] = React.useState({
+    address: '0x33530bb5d7b912e01eb7cc1a27d69dd078cee03a',
+    abi: JSON.stringify(require('./coin.json'), null, 2),
+    receiver: '0xd0cda47a263859316febc1eb29a65517ab22926a',
+    amount: '1000',
+    showAbi: false,
+    txHash: ''
+  })
   const [sig, setSig] = React.useState('')
 
   React.useEffect(() => dapp.onEnabled(account => {
@@ -56,14 +68,30 @@ export default function App () {
     setSig(sig)
   }
 
-  const transfer = async (to = '0x987ffbf3f7cdabb38782b9886d257ce74f338da5', amount = '0.01') => {
+  const transfer = async (to, amount) => {
     const transactionParameters = {
       to,
       from: account.address,
-      value: dapp.parseEther(amount).toHexString()
+      value: dapp.parseEther(amount).toHexString(),
     };
-    const txHash = await dapp.sendTransaction(transactionParameters)
+    const txHash = await dapp.transfer(transactionParameters)
     console.log(txHash)
+    setTransferInfo({ ...transferInfo, txHash })
+  }
+
+  const execute = async () => {
+    const { address, abi, receiver, amount } = contractInfo
+    const txParams = await dapp.createTransacction(address, abi, {
+      method: 'mint',
+      parameters: [receiver, amount],
+    })
+    const txHash = await dapp.transfer({
+      from: account.address,
+      value: dapp.parseEther('0').toHexString(),
+      ...txParams,
+    })
+    console.log(txHash)
+    setContractInfo({ ...contractInfo, txHash })
   }
 
   let browserExtensionStatus
@@ -134,6 +162,55 @@ export default function App () {
         placeholder="Transfer amount"
       />
       <button onClick={() => transfer(transferInfo.to, transferInfo.amount)}>Transfer</button>
+      {
+        !!transferInfo.txHash &&
+        <div>{transferInfo.txHash}</div>
+      }
+    </div>
+  }
+
+  let contractForm = null
+  if (enabled && network) {
+    contractForm = <div style={{ margin: '20px 0'}}>
+      <div>
+        Contract
+      </div>
+      <input
+        value={contractInfo.address}
+        onChange={(e) => setContractInfo({ ...contractInfo, address: e.target.value })}
+        placeholder="Contract Address"
+      />
+      <input
+        value={contractInfo.receiver}
+        onChange={(e) => setContractInfo({ ...contractInfo, receiver: e.target.value })}
+        placeholder="Receiver"
+      />
+      <input
+        value={contractInfo.amount}
+        onChange={(e) => setContractInfo({ ...contractInfo, amount: e.target.value })}
+        placeholder="Amount"
+      />
+      <button onClick={() => execute()}>Execute</button>
+      <div>
+        {
+          contractInfo.showAbi &&
+          <textarea
+            value={contractInfo.abi}
+            onChange={(e) => setContractInfo({ ...contractInfo, abi: e.target.value })}
+            type="textarea"
+            placeholder="ABI"
+            rows="10"
+            cols="60"
+          />
+        }
+        <div>
+          <button onClick={() => setContractInfo({ ...contractInfo, showAbi: !contractInfo.showAbi })}>Edit ABI</button>
+        </div>
+      </div>
+      {
+        !!contractInfo.txHash &&
+        <div>{contractInfo.txHash}</div>
+      }
     </div>
   }
 
@@ -147,6 +224,7 @@ export default function App () {
         {networkInfo}
         {signMessageButton}
         {transferForm}
+        {contractForm}
       </header>
     </div>
   );
