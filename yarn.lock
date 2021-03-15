@@ -1761,10 +1761,10 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@obsidians/bsc-dapp@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@obsidians/bsc-dapp/-/bsc-dapp-0.3.0.tgz#7e7b22b395cb51ec0429fcc96237d2a3d9be8a7a"
-  integrity sha512-FodG7hBBIbpQY0KFwUzKtwtQ2I7MnEiVInPrP32ScL5j2ClLal1tBtoeHk+TRm3GR4XiSKudmH6iIOOIB01D4A==
+"@obsidians/bsc-dapp@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@obsidians/bsc-dapp/-/bsc-dapp-0.3.1.tgz#fc4a3719e75664de66cb0e879279f8b03504e5a6"
+  integrity sha512-RTZ1jUgHw+X3+S7ma12RwDdZbwx7pQ2XXpat1f6RwIqntg0PL2RqmXmWtX9XltdfrZcOudhhgRm3/RcvxE+G1g==
   dependencies:
     ethers "^5.0.31"
     qs "^6.9.6"
