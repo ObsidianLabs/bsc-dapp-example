@@ -190,7 +190,7 @@ export default function App () {
         placeholder="Receiver"
       />
       <br />
-      param2 (receiver):
+      param2 (amount):
       <input
         value={contractInfo.amount}
         onChange={(e) => setContractInfo({ ...contractInfo, amount: e.target.value })}
