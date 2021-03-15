@@ -5,6 +5,8 @@ import BscDapp from '@obsidians/bsc-dapp'
 import logo from './logo.svg';
 import './App.css';
 
+import abi from './coin.json'
+
 const message = 'Hello Binance Smart Chain'
 
 export default function App () {
@@ -23,10 +25,8 @@ export default function App () {
   })
   const [contractInfo, setContractInfo] = React.useState({
     address: '0x33530bb5d7b912e01eb7cc1a27d69dd078cee03a',
-    abi: JSON.stringify(require('./coin.json'), null, 2),
     receiver: '0xd0cda47a263859316febc1eb29a65517ab22926a',
     amount: '1000',
-    showAbi: false,
     txHash: ''
   })
   const [sig, setSig] = React.useState('')
@@ -69,28 +69,23 @@ export default function App () {
   }
 
   const transfer = async (to, amount) => {
-    const transactionParameters = {
-      to,
+    const tx = {
       from: account.address,
-      value: dapp.parseEther(amount).toHexString(),
+      to,
+      value: dapp.parseEther(amount),
     };
-    const txHash = await dapp.transfer(transactionParameters)
-    console.log(txHash)
+    const txHash = await dapp.sendTransaction(tx)
     setTransferInfo({ ...transferInfo, txHash })
   }
 
   const execute = async () => {
-    const { address, abi, receiver, amount } = contractInfo
-    const txParams = await dapp.createTransacction(address, abi, {
-      method: 'mint',
-      parameters: [receiver, amount],
-    })
-    const txHash = await dapp.transfer({
+    const { address, receiver, amount } = contractInfo
+    const txParams = await dapp.executeContract({ address, abi }, 'mint', [receiver, amount])
+    const txHash = await dapp.sendTransaction({
       from: account.address,
-      value: dapp.parseEther('0').toHexString(),
+      value: dapp.parseEther('0'),
       ...txParams,
     })
-    console.log(txHash)
     setContractInfo({ ...contractInfo, txHash })
   }
 
@@ -147,20 +142,24 @@ export default function App () {
 
   let transferForm = null
   if (enabled && network) {
-    transferForm = <div style={{ margin: '20px 0'}}>
+    transferForm = <div style={{ margin: '20px 0' }}>
       <div>
         Transfer
       </div>
+      to:
       <input
         value={transferInfo.to}
         onChange={(e) => setTransferInfo({ ...transferInfo, to: e.target.value })}
         placeholder="Transfer to"
       />
+      <br />
+      amount:
       <input
         value={transferInfo.amount}
         onChange={(e) => setTransferInfo({ ...transferInfo, amount: e.target.value })}
         placeholder="Transfer amount"
       />
+      <br />
       <button onClick={() => transfer(transferInfo.to, transferInfo.amount)}>Transfer</button>
       {
         !!transferInfo.txHash &&
@@ -171,42 +170,34 @@ export default function App () {
 
   let contractForm = null
   if (enabled && network) {
-    contractForm = <div style={{ margin: '20px 0'}}>
+    contractForm = <div style={{ margin: '20px 0' }}>
       <div>
         Contract
       </div>
+      contract:
       <input
         value={contractInfo.address}
         onChange={(e) => setContractInfo({ ...contractInfo, address: e.target.value })}
         placeholder="Contract Address"
       />
+      <br />
+      method: mint
+      <br />
+      param1 (receiver):
       <input
         value={contractInfo.receiver}
         onChange={(e) => setContractInfo({ ...contractInfo, receiver: e.target.value })}
         placeholder="Receiver"
       />
+      <br />
+      param2 (receiver):
       <input
         value={contractInfo.amount}
         onChange={(e) => setContractInfo({ ...contractInfo, amount: e.target.value })}
         placeholder="Amount"
       />
+      <br />
       <button onClick={() => execute()}>Execute</button>
-      <div>
-        {
-          contractInfo.showAbi &&
-          <textarea
-            value={contractInfo.abi}
-            onChange={(e) => setContractInfo({ ...contractInfo, abi: e.target.value })}
-            type="textarea"
-            placeholder="ABI"
-            rows="10"
-            cols="60"
-          />
-        }
-        <div>
-          <button onClick={() => setContractInfo({ ...contractInfo, showAbi: !contractInfo.showAbi })}>Edit ABI</button>
-        </div>
-      </div>
       {
         !!contractInfo.txHash &&
         <div>{contractInfo.txHash}</div>
